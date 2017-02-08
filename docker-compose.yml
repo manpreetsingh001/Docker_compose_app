@@ -1,12 +1,37 @@
 version: '2'
 services:
-  url:
-   build: .
-   ports:
-   -  "5000:5000"
-   volumes:
-   - .:/URL_lookup
-   depends_on:
-   - mysql
   mysql:
-   image: mysql
+   image: mysql:5.7
+   container_name: database
+   restart: unless-stopped
+   environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: malicious
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+
+  web:
+   build: ./app
+   restart: stopped
+   command: python ./app/URL_lookup.py
+   ports:
+    -  "5000:5000"
+   volumes:
+    - .:/Docker_compose_app
+   links:
+    -  mysql:mysql
+   depends_on:
+    -  db
+
+  db:
+    build: ./db
+    container_name: db_populate
+    command: python ./db/database_update.py
+    restart: unless-stopped
+    volumes:
+     - .:/Docker_compose_app
+    links: 
+    - mysql:mysql
+  
+
+   
